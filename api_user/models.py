@@ -6,7 +6,7 @@ class UserModel(models.Model):
     user_pw = models.CharField(max_length=255)
     user_nm = models.CharField(max_length=20)
     cust_cd = models.CharField(max_length=10, null=True)
-    gender_ty = models.CharField(null=True)
+    gender_ty = models.CharField(max_length=1, null=True)
     birth_dt = models.DateField(null=True)
     mobile_no = models.CharField(max_length=20)
     email_addr = models.CharField(max_length=255)

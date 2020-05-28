@@ -11,27 +11,23 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os, json
+import datetime
+import logging
+import logging.config
+
 
 from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
-#OS 구분
-def get_log_path():
-    os_name = os.name.upper()
-    global GB_LOG_PATH
-    if os.name.upper() == 'Windows':
-        GB_LOG_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    elif os.name.upper() == 'Linux':
-        GB_LOG_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    else:
-        GB_LOG_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+#로그출력파일
+LOG_FILE_INFO = os.path.join(BASE_DIR + '/logs/', 'kinpec-api.log')
+#LOG_FILE_INFO = 'C:\dev\python\kinpec_redis\logs\kinpec-api.log'
 
 #설정파일
-config_file = os.path.join(BASE_DIR, 'config.json')
-with open(config_file) as f:
+DB_FILE_INFO = os.path.join(BASE_DIR, 'config.json')
+with open(DB_FILE_INFO) as f:
     config = json.loads(f.read())
 
 def get_config(setting, config=config):
@@ -64,7 +60,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'api_user',
-    'api_location'    
+    'api_location',
     'corsheaders', # CORS
 ]
 
@@ -122,19 +118,47 @@ DATABASES = {
 }
 
 #로그
+
 LOGGING = {
-    'version': 1, 'disable_existing_loggers': False,
+    'version': 1,
+    'disable_existing_loggers': True,
+
+    'formatters': {
+        'verbose': {
+            'format': "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
+            'datefmt': "%Y-%m-%d %H:%M:%S"
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+
     'handlers': {
         'file': {
-            'level': 'DEBUG', 'class': 'logging.FileHandler', 'filename': 'C:\dev\python\logs\kinpec_redis\debug.log',
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOG_FILE_INFO,
+            'formatter': 'verbose',
+            'maxBytes': 1024 * 1024 * 10,
+            'backupCount': 5,
         },
     },
+
     'loggers': {
         'django': {
-            'handlers': ['file'], 'level': 'DEBUG', 'propagate': True,
+            'handlers': ['file'],
+            'propagate': True,
+            'level': 'INFO',
         },
-    },
+        'django.request': {
+            'handlers': ['file'],
+            'propagate': False,
+            'level': 'INFO',
+        },
+    }
 }
+
+
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
@@ -164,9 +188,9 @@ TIME_ZONE = 'Asia/Seoul'
 
 USE_I18N = True
 
-USE_L10N = True
+USE_L10N = False
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
