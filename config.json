@@ -1,0 +1,7 @@
+{
+    "NAME":"kin_car",
+    "USER":"kinpecauto",
+    "PASSWORD":"Kinpec0402!@#",
+    "HOST":"localhost",
+    "PORT":"5432"
+}

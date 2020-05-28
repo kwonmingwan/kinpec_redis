@@ -10,11 +10,37 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
-import os
+import os, json
+
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+
+#OS 구분
+def get_log_path():
+    os_name = os.name.upper()
+    global GB_LOG_PATH
+    if os.name.upper() == 'Windows':
+        GB_LOG_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    elif os.name.upper() == 'Linux':
+        GB_LOG_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    else:
+        GB_LOG_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+#설정파일
+config_file = os.path.join(BASE_DIR, 'config.json')
+with open(config_file) as f:
+    config = json.loads(f.read())
+
+def get_config(setting, config=config):
+    try:
+        print("check config.json : ", config[setting])
+        return config[setting]
+    except KeyError:
+        error_msg = "Set the {} environment variable".format(setting)
+        raise ImproperlyConfigured(error_msg)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
@@ -25,7 +51,7 @@ SECRET_KEY = '=2pzyj2h7(s+yocxe18l-s-o-+flq_i)h9uwaqt_cj49!@v&yg'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['54.250.54.22', 'localhost', '127.0.0.1', '192.168.155.2', '192.168.155.30']
 
 
 # Application definition
@@ -37,6 +63,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'api_user',
+    'api_location'    
+    'corsheaders', # CORS
 ]
 
 MIDDLEWARE = [
@@ -47,7 +76,14 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # CORS
+    'django.middleware.common.CommonMiddleware',
 ]
+
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_WHITELIST = (
+    'http://localhost:8000',
+)
 
 ROOT_URLCONF = 'kinpec_redis.urls'
 
@@ -76,11 +112,29 @@ WSGI_APPLICATION = 'kinpec_redis.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE':'django.db.backends.postgresql',
+        'NAME':get_config("NAME"),
+        'USER':get_config("USER"),
+        'PASSWORD':get_config("PASSWORD"),
+        'HOST':get_config("HOST"),
+        'PORT':get_config("PORT"),
     }
 }
 
+#로그
+LOGGING = {
+    'version': 1, 'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'DEBUG', 'class': 'logging.FileHandler', 'filename': 'C:\dev\python\logs\kinpec_redis\debug.log',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'], 'level': 'DEBUG', 'propagate': True,
+        },
+    },
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
@@ -104,9 +158,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ko-kr'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Seoul'
 
 USE_I18N = True
 
